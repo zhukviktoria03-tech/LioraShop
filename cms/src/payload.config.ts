@@ -1,5 +1,5 @@
 import { buildConfig } from 'payload/config'
-import { mongooseAdapter } from '@payloadcms/db-mongodb'
+import { postgresAdapter } from '@payloadcms/db-postgres'
 import { slateEditor } from '@payloadcms/richtext-slate'
 import { webpackBundler } from '@payloadcms/bundler-webpack'
 import path from 'path'
@@ -20,9 +20,9 @@ const allowedCors = (process.env.CORS_ORIGINS || 'http://localhost:5173')
 export default buildConfig({
   serverURL: process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000',
   admin: {
-  user: Users.slug,
-  bundler: webpackBundler(),
-},
+    user: Users.slug,
+    bundler: webpackBundler(),
+  },
   collections: [Users, Media, Products, Pages],
   editor: slateEditor({}),
   typescript: {
@@ -33,9 +33,11 @@ export default buildConfig({
   },
   cors: allowedCors,
   csrf: allowedCors,
-db: mongooseAdapter({
-  url: process.env.DATABASE_URL || 'mongodb://127.0.0.1:27017/liora',
-}),  endpoints: [
+  db: postgresAdapter({
+    pool: {
+      connectionString: process.env.DATABASE_URL || '',
+    },
+  }), endpoints: [
     {
       path: '/page-by-slug/:slug',
       method: 'get',
