@@ -10,16 +10,8 @@ export const Media: CollectionConfig = {
         name: 'thumbnail',
         width: 400,
         height: 400,
-        position: 'centre',
-      },
-      {
-        name: 'tablet',
-        width: 800,
-        height: 800,
-        position: 'centre',
       },
     ],
-    adminThumbnail: 'thumbnail',
     mimeTypes: ['image/*'],
   },
   access: {
