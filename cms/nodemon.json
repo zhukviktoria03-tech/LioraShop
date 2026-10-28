@@ -1,5 +1,8 @@
 {
+  "exec": "ts-node --transpile-only src/server.ts",
   "watch": ["src"],
   "ext": "ts",
-  "exec": "ts-node --transpile-only src/server.ts"
+  "ignore": ["src/**/*.js", "src/payload-types.ts"],
+  "delay": "1000",
+  "signal": "SIGUSR2"
 }
