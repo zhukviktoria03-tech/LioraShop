@@ -11,6 +11,18 @@ dotenv.config({
 const app = express()
 const PORT = process.env.PORT || 3000
 
+const port = Number(process.env.PORT) || 3000
+const server = app.listen(port)
+
+process.once('SIGUSR2', () => {
+  server.close(() => {
+    process.kill(process.pid, 'SIGUSR2')
+  })
+})
+
+process.on('SIGINT', () => server.close())
+process.on('SIGTERM', () => server.close())
+
 if (!process.env.PAYLOAD_CONFIG_PATH) {
   const configPath = ['payload.config.js', 'payload.config.ts']
     .map((fileName) => path.resolve(__dirname, fileName))
