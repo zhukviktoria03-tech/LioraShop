@@ -1,0 +1,27 @@
+:root {
+  --color-bg: #fdf6f3;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #faf0eb;
+  --color-border: #f0ddd5;
+  --color-text-main: #2d181e;
+  --color-text-muted: #6e545b;
+  --color-primary: #3b1c24;
+  --color-primary-hover: #542b35;
+  --color-accent-yellow: #fce7a2;
+  --color-accent-yellow-hover: #fae086;
+  --color-accent-pink: #f7d2c7;
+  --color-badge-bg: #feece6;
+  --color-badge-text: #8a3c4f;
+
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  --shadow-sm: 0 2px 8px rgba(59, 28, 36, 0.04);
+  --shadow-md: 0 8px 24px rgba(59, 28, 36, 0.08);
+  --shadow-lg: 0 16px 40px rgba(59, 28, 36, 0.12);
+
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+}

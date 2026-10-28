@@ -1,0 +1,67 @@
+.routine-section {
+  padding: 80px 0;
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.routine-header {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 50px;
+}
+
+.routine-title {
+  font-family: var(--font-serif);
+  font-size: 2.4rem;
+  margin-bottom: 12px;
+}
+
+.routine-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 768px) {
+  .routine-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .routine-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.routine-step-card {
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 28px 20px;
+  position: relative;
+}
+
+.step-num {
+  font-family: var(--font-serif);
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  opacity: 0.25;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.step-name {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+  color: var(--color-text-main);
+}
+
+.step-tip {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
