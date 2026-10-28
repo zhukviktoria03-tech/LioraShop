@@ -15,7 +15,6 @@ export const Media: CollectionConfig = {
       {
         name: 'tablet',
         width: 800,
-        height: null,
         position: 'centre',
       },
     ],
