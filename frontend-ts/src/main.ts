@@ -1,10 +1,18 @@
 import './styles/global.css'
 import type { PageState } from './types'
-import { getPageBySlug, getBestsellers } from './api'
+import { getPageBySlug, getBestsellers, getCommon, getStoreUrl, setStoreBaseUrl } from './api'
 import { renderBlocks } from './render'
 import { renderLoading, renderNotFound, renderError } from './states'
 
 const app = document.querySelector<HTMLDivElement>('#app')
+
+function configureStoreLinks(): void {
+  document.querySelectorAll<HTMLAnchorElement>('[data-store-path]').forEach((link) => {
+    link.href = getStoreUrl(link.dataset.storePath || '/')
+  })
+}
+
+configureStoreLinks()
 
 if (!app) {
   throw new Error('Кореневий елемент #app не знайдено в DOM')
@@ -15,11 +23,14 @@ async function load(slug: string = 'home'): Promise<void> {
   renderUI({ status: 'loading' })
 
   try {
-    const [page, bestsellers] = await Promise.all([
+    const [page, bestsellers, common] = await Promise.all([
       getPageBySlug(slug),
       getBestsellers(3),
+      getCommon().catch(() => null),
     ])
 
+    setStoreBaseUrl(common?.djangoStoreBaseUrl)
+    configureStoreLinks()
     renderUI({ status: 'success', data: page, bestsellers })
   } catch (error: any) {
     if (error?.status === 404) {

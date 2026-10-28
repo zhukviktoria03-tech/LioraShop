@@ -1,4 +1,5 @@
 import type { BestsellersBlock, ProductItem } from '../../types'
+import { getStoreUrl } from '../../api'
 import './bestsellers.css'
 
 export function renderBestsellers(block: BestsellersBlock, products: ProductItem[] = []): string {
@@ -27,7 +28,7 @@ export function renderBestsellers(block: BestsellersBlock, products: ProductItem
             <span class="product-price">${item.price} грн</span>
             <span class="product-vol">${item.volume}</span>
           </div>
-          <a href="${item.djangoUrl}" target="_blank" class="product-buy-btn">
+          <a href="${getStoreUrl(item.djangoUrl)}" target="_blank" rel="noopener noreferrer" class="product-buy-btn">
             Купити на LioraShop &rarr;
           </a>
         </article>

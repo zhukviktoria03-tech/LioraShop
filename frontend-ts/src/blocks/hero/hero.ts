@@ -1,4 +1,5 @@
 import type { HeroBlock } from '../../types'
+import { getStoreUrl } from '../../api'
 import './hero.css'
 
 export function renderHero(block: HeroBlock): string {
@@ -27,7 +28,7 @@ export function renderHero(block: HeroBlock): string {
           <h1 class="hero-title">${block.heading}</h1>
           <p class="hero-desc">${block.subheading || ''}</p>
           <div class="hero-actions">
-            <a href="${block.ctaLink}" target="_blank" class="btn-primary">${block.ctaText} &rarr;</a>
+            <a href="${getStoreUrl(block.ctaLink)}" target="_blank" rel="noopener noreferrer" class="btn-primary">${block.ctaText} &rarr;</a>
             <a href="#philosophy" class="btn-secondary">Дізнатися більше</a>
           </div>
         </div>

@@ -1,7 +1,37 @@
 import type { Page, ProductItem } from './types'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
-const DJANGO_STORE_URL = import.meta.env.VITE_DJANGO_STORE_URL || 'http://localhost:8000'
+const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')
+let DJANGO_STORE_URL = (import.meta.env.VITE_DJANGO_STORE_URL || 'http://localhost:8000').replace(
+  /\/+$/,
+  '',
+)
+
+export type CommonData = {
+  djangoStoreBaseUrl?: string
+  djangoStoreUrls?: Record<string, string>
+}
+
+export function setStoreBaseUrl(url?: string): void {
+  if (url) {
+    DJANGO_STORE_URL = url.replace(/\/+$/, '')
+  }
+}
+
+export function getStoreUrl(pathOrUrl: string): string {
+  const storeBase = `${DJANGO_STORE_URL}/`
+  const target = new URL(pathOrUrl, storeBase)
+  const configuredStore = new URL(storeBase)
+  const isLocalHost = ['localhost', '127.0.0.1'].includes(target.hostname)
+  const storeIsRemote = !['localhost', '127.0.0.1'].includes(configuredStore.hostname)
+
+  if (isLocalHost && storeIsRemote) {
+    return new URL(`${target.pathname}${target.search}${target.hash}`, storeBase).toString()
+  }
+
+  return target.toString()
+}
+
+export const getCommon = (): Promise<CommonData> => fetchJson<CommonData>('/api/common')
 
 export class ApiError extends Error {
   constructor(message: string, public status: number) {
@@ -12,7 +42,9 @@ export class ApiError extends Error {
 
 // 2.3.5. Generic Fetch Function
 export async function fetchJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`)
+  const response = await fetch(`${API_URL}${path}`, {
+    signal: AbortSignal.timeout(10000),
+  })
   if (!response.ok) {
     throw new ApiError(`Помилка запиту (${response.status}): ${response.statusText}`, response.status)
   }
@@ -23,8 +55,11 @@ export const getPageBySlug = async (slug: string): Promise<Page> => {
   try {
     return await fetchJson<Page>(`/api/page-by-slug/${encodeURIComponent(slug)}`)
   } catch (err: any) {
-    // Якщо CMS ще не запущена локально, повертаємо якісні демонстраційні дані бренду Liora
-    if (err?.name === 'TypeError' || err?.message?.includes('Failed to fetch')) {
+    if (err instanceof ApiError && err.status === 404) {
+      return getMockPage(slug)
+    }
+
+    if (err?.name === 'TypeError' || err?.name === 'TimeoutError') {
       console.info('Payload CMS недоступна — використовується локальний мок-контент для демонстрації.')
       return getMockPage(slug)
     }
@@ -34,14 +69,50 @@ export const getPageBySlug = async (slug: string): Promise<Page> => {
 
 export const getBestsellers = async (limit: number = 3): Promise<ProductItem[]> => {
   try {
-    return await fetchJson<ProductItem[]>(`/api/bestsellers?limit=${limit}`)
-  } catch {
-    return getMockBestsellers()
+    const products = await fetchJson<ProductItem[]>(`/api/bestsellers?limit=${limit}`)
+    return products.length ? products : getMockBestsellers().slice(0, limit)
+  } catch (error: any) {
+    if (error?.name === 'TypeError' || error?.name === 'TimeoutError') {
+      return getMockBestsellers()
+    }
+    throw error
   }
 }
 
 // Мок-дані за замовчуванням (відповідають товарам із Розділу 1 Django)
 function getMockPage(slug: string): Page {
+  if (slug === 'catalog') {
+    return {
+      id: 'fallback-catalog',
+      title: 'Каталог LioraShop',
+      slug,
+      layout: [
+        {
+          blockType: 'hero',
+          badge: 'Каталог LioraShop',
+          heading: 'Догляд, який розуміє ваша шкіра',
+          subheading:
+            'Перегляньте повний каталог засобів Liora в офіційному магазині та знайдіть щоденний догляд для себе.',
+          ctaText: 'Відкрити каталог',
+          ctaLink: getStoreUrl('/katalog/'),
+        },
+        {
+          blockType: 'bestsellers',
+          title: 'Популярні засоби',
+          subtitle: 'Перевірені формули, які обирають найчастіше.',
+          limit: 3,
+        },
+        {
+          blockType: 'cta',
+          headline: 'Усі засоби Liora в одному місці',
+          caption: 'Перейдіть до повного каталогу та оформіть замовлення в LioraShop.',
+          buttonLabel: 'Перейти до LioraShop',
+          targetUrl: getStoreUrl('/katalog/'),
+        },
+      ],
+    }
+  }
+
   if (slug !== 'home' && slug !== '') {
     throw new ApiError('Сторінку не знайдено', 404)
   }
@@ -58,7 +129,7 @@ function getMockPage(slug: string): Page {
         subheading:
           'Liora збирає засоби без зайвого аромату та подразників: очищення, тоніки, сироватки, креми, маски, сонцезахист і догляд за тілом. Створено з повагою до природного барʼєру.',
         ctaText: 'Перейти до каталогу LioraShop',
-        ctaLink: `${DJANGO_STORE_URL}/katalog/`,
+        ctaLink: getStoreUrl('/katalog/'),
       },
       {
         blockType: 'philosophy',
@@ -118,7 +189,7 @@ function getMockPage(slug: string): Page {
         caption:
           'Замовляйте косметику Liora в нашому офіційному магазині на Django. Швидка доставка Новою поштою, оплата при отриманні та безкоштовна доставка від 1 500 грн.',
         buttonLabel: 'Перейти в магазин LioraShop',
-        targetUrl: `${DJANGO_STORE_URL}/katalog/`,
+        targetUrl: getStoreUrl('/katalog/'),
       },
     ],
   }
@@ -134,7 +205,7 @@ function getMockBestsellers(): ProductItem[] {
       price: 720,
       volume: '50 мл',
       isBestseller: true,
-      djangoUrl: `${DJANGO_STORE_URL}/tovar/krem-barier/`,
+      djangoUrl: getStoreUrl('/tovar/krem-barier/'),
     },
     {
       id: 2,
@@ -144,7 +215,7 @@ function getMockBestsellers(): ProductItem[] {
       price: 690,
       volume: '50 мл',
       isBestseller: true,
-      djangoUrl: `${DJANGO_STORE_URL}/tovar/spf-50-lehka-vual/`,
+      djangoUrl: getStoreUrl('/tovar/spf-50-lehka-vual/'),
     },
     {
       id: 3,
@@ -154,7 +225,7 @@ function getMockBestsellers(): ProductItem[] {
       price: 470,
       volume: '150 мл',
       isBestseller: true,
-      djangoUrl: `${DJANGO_STORE_URL}/tovar/hel-dlia-vmyvannia-vivsianyi/`,
+      djangoUrl: getStoreUrl('/tovar/hel-dlia-vmyvannia-vivsianyi/'),
     },
   ]
 }
